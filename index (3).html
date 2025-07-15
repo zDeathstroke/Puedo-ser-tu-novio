@@ -1,0 +1,129 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>¿Puedo ser tu novio?</title>
+  <link rel="stylesheet" href="https://unpkg.com/normalize.css" />
+  <style>
+    body, html { margin:0; padding:0; overflow:hidden; height:100%; background:#000; }
+    canvas { display:block; }
+    #ui {
+      position: absolute; top:0; left:0; width:100%; height:100%;
+      display:flex; flex-direction:column; justify-content:center; align-items:center;
+      pointer-events:none;
+    }
+    h1 { color:white; font-size:3em; pointer-events:auto;}
+    button {
+      pointer-events:auto; margin:10px; padding:15px 30px; font-size:1.2em;
+      border:none; border-radius:10px; cursor:pointer;
+    }
+    #yes { background:#4CAF50; color:#fff; }
+    #no { background:#f44336; color:#fff; position:absolute;}
+    #playMusic {
+      background: #2196F3; color: white;
+      position: absolute;
+      bottom: 30px;
+    }
+    .heart {
+      position:fixed; color: #ff69b4; font-size:2em; animation:floatUp 5s linear;
+      opacity:0.8; z-index:1;
+    }
+    @keyframes floatUp {
+      to { transform: translateY(-100vh) scale(1.5); opacity:0; }
+    }
+  </style>
+  <script async src="https://ga.jspm.io/npm:es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.154.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.154.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <div id="ui">
+    <h1>¿Puedo ser tu novio?</h1>
+    <button id="yes">Sí 💖</button>
+    <button id="no">No 🙈</button>
+    <button id="playMusic">▶️</button>
+  </div>
+  <audio id="audioPlayer">
+    <source src="Te encontre - El vega - Letra.mp3" type="audio/mpeg">
+  </audio>
+  <script type="module">
+    import * as THREE from 'three';
+    let scene = new THREE.Scene();
+    let camera = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, 0.1, 1000);
+    camera.position.z = 2;
+    let renderer = new THREE.WebGLRenderer({canvas:document.getElementById('canvas'), antialias:true});
+    renderer.setSize(innerWidth, innerHeight);
+
+    window.addEventListener('resize',()=> {
+      camera.aspect = innerWidth/innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(innerWidth, innerHeight);
+    });
+
+    let geometry = new THREE.TorusKnotGeometry(0.5,0.2,100,16);
+    let material = new THREE.MeshBasicMaterial({color:0xffffff, wireframe:true});
+    let knot = new THREE.Mesh(geometry, material);
+    scene.add(knot);
+
+    let pts = new THREE.BufferGeometry();
+    let positions = new Float32Array(500*3).map(() => (Math.random()-0.5)*4);
+    pts.setAttribute('position', new THREE.BufferAttribute(positions,3));
+    let particles = new THREE.Points(pts, new THREE.PointsMaterial({color:0xff69b4, size:0.02}));
+    scene.add(particles);
+
+    function animate(){
+      requestAnimationFrame(animate);
+      knot.rotation.x += 0.005;
+      knot.rotation.y += 0.01;
+      particles.rotation.y += 0.002;
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    const noBtn = document.getElementById('no');
+    const yesBtn = document.getElementById('yes');
+    const playBtn = document.getElementById('playMusic');
+    const audio = document.getElementById('audioPlayer');
+    let noCount =0;
+
+    noBtn.addEventListener('mouseover', ()=>{
+      noBtn.style.left = Math.random()*(innerWidth-100)+'px';
+      noBtn.style.top = Math.random()*(innerHeight-40)+'px';
+    });
+    noBtn.addEventListener('click', ()=>{
+      noCount++;
+      const msgs = ["¿Estás segura?","Creo que te has equivocado de botón.","Yo sé que tú también quieres, vamos, acepta...","¡Anda, no seas tímida! 😘"];
+      alert(msgs[Math.min(noCount-1,msgs.length-1)]);
+    });
+
+    function createHeart(x){
+      const h = document.createElement('div');
+      h.textContent='💖';
+      h.className='heart';
+      h.style.left = x+'px';
+      document.body.appendChild(h);
+      setTimeout(()=> h.remove(),5000);
+    }
+    setInterval(()=>createHeart(Math.random()*innerWidth),300);
+
+    yesBtn.addEventListener('click', ()=>{
+      for(let i=0;i<50;i++){
+        setTimeout(()=>createHeart(Math.random()*innerWidth), i*50);
+      }
+      alert("¡Sabía que dirías que sí! ❤️ Tu borreguito te quiere.");
+    });
+
+    playBtn.addEventListener('click', () => {
+      audio.play();
+    });
+  </script>
+</body>
+</html>
